@@ -32,7 +32,7 @@ const __dirname = path.dirname(__filename);
 // ---------------------- ⚙️ MIDDLEWARES ----------------------
 app.use(
   cors({
-    origin: [ENV.clientUrl, /\.trycloudflare\.com$/],
+    origin: [ENV.clientUrl, /\.trycloudflare\.com$/, "http://localhost:8080"],
     credentials: true,
   })
 );

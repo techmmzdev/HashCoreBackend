@@ -52,28 +52,48 @@ app.use("/api", publicationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/dashboard/client", clientDashboardRoutes);
 
+// Servir carpeta pública
+app.use(express.static("public"));
+
 // Página raíz de prueba
 app.get("/", (req, res) => {
   res.type("html").send(`
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>Backend API</title>
-            <script src="https://cdn.tailwindcss.com"></script>
-        </head>
-        <body class="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-indigo-900 to-pink-600 text-white">
-            <header class="text-center">
-                <h1 class="text-4xl font-bold mb-2">🚀 Servidor en funcionamiento</h1>
-                <p class="text-lg mb-6">Bienvenido al <span class="font-semibold">Backend API</span></p>
-            </header>
-            <footer class="absolute bottom-4 text-sm opacity-80">
-                <p>© ${new Date().getFullYear()} - Backend API funcionando correctamente</p>
-            </footer>
-        </body>
-        </html>
-    `);
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Backend API</title>
+      <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      <style>
+        body {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #312e81, #db2777);
+          color: white;
+          font-family: 'Segoe UI', Roboto, sans-serif;
+          text-align: center;
+          position: relative;
+        }
+        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        p { font-size: 1.2rem; margin-bottom: 2rem; }
+        footer { position: absolute; bottom: 1rem; font-size: 0.9rem; opacity: 0.8; }
+      </style>
+    </head>
+    <body>
+      <header>
+        <h1>🚀 Servidor en funcionamiento</h1>
+        <p>Bienvenido al <span>Backend API</span></p>
+      </header>
+      <footer>
+        <p>© ${new Date().getFullYear()} - Backend API funcionando correctamente</p>
+      </footer>
+    </body>
+    </html>
+  `);
 });
 
 // ---------------------- 🟢 SOCKET.IO ----------------------

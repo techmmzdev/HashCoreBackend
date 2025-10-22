@@ -9,7 +9,7 @@ export const getPrisma = () => {
     prisma = new PrismaClient({
       log:
         ENV.node === "development"
-          ? ["query", "info", "warn", "error"]
+          ? ["info", "warn", "error"]
           : ["warn", "error"],
     });
   }

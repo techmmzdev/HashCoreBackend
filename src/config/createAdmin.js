@@ -1,4 +1,3 @@
-// scripts/createAdmin.js
 import { getPrisma } from "../config/db.js";
 import bcrypt from "bcrypt";
 
@@ -6,6 +5,15 @@ const prisma = getPrisma();
 
 async function createAdmin() {
   try {
+    const existing = await prisma.users.findUnique({
+      where: { email: "admin@app.com" },
+    });
+
+    if (existing) {
+      console.log("⚠️  El admin ya existe:", existing.email);
+      return;
+    }
+
     const hashedPassword = await bcrypt.hash("Admin2025#", 10);
 
     const admin = await prisma.users.create({
@@ -19,11 +27,7 @@ async function createAdmin() {
 
     console.log("✅ Admin creado exitosamente:", admin.email);
   } catch (error) {
-    if (error.code === "P2002") {
-      console.log("⚠️  El admin ya existe");
-    } else {
-      console.error("❌ Error:", error.message);
-    }
+    console.error("❌ Error:", error.message);
   } finally {
     await prisma.$disconnect();
   }

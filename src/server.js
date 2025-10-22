@@ -1,15 +1,14 @@
-// backend/src/server.js (NUEVO ARCHIVO)
-import app, { httpServer } from "./app.js"; // Importamos la app y el servidor HTTP
-import { initDB, dbHealthCheck } from "./config/db.js"; // Importamos DB
+import app, { httpServer } from "./app.js";
+import { initDB, dbHealthCheck } from "./config/db.js";
 import { ENV } from "./config/env.js";
-// import { startPublicationScheduler } from "./scheduler/publicationScheduler.js"; // Scheduler para publicar programadas
 
-// 🩺 Ruta de salud (Se mueve aquí para que pueda usar initDB y dbHealthCheck si lo deseas)
+// 🩺 Ruta de salud
 app.get("/health", async (req, res) => {
   try {
     const health = await dbHealthCheck();
     res.status(200).json(health);
   } catch (error) {
+    console.error("[HEALTH] Error de conexión a DB:", error);
     res.status(500).json({ message: "Database connection failed" });
   }
 });
@@ -18,8 +17,14 @@ app.get("/health", async (req, res) => {
 initDB()
   .then(() => {
     httpServer.listen(ENV.port, () => {
-      console.log(`[HTTP] 🚀 Servidor escuchando en ${ENV.appUrl}`); // startPublicationScheduler(); // Lo mantenemos comentado por ahora
-      // Iniciamos el scheduler de publicaciones programadas
+      console.log(
+        `[ENV] ${ENV.node.toUpperCase()} | DB: ${
+          ENV.dbUrl.includes("localhost") ? "Local" : "Supabase"
+        }`
+      );
+      console.log(
+        `[HTTP] 🚀 Servidor escuchando en ${ENV.appUrl} (Puerto: ${ENV.port})`
+      );
       // startPublicationScheduler();
     });
   })

@@ -1,14 +1,13 @@
-// backend/src/app.js (Versión Mejorada)
 import express from "express";
 import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import dotenv from "dotenv";
-import { Server as SocketIOServer } from "socket.io"; // ⬅️ Nuevo: Importamos Socket.IO
-import { verifySocketToken } from "./middlewares/authMiddleware.js";
+import { Server as SocketIOServer } from "socket.io";
 
 import { ENV } from "./config/env.js";
+import { verifySocketToken } from "./middlewares/authMiddleware.js";
 import userRoutes from "./routes/userRoutes.js";
 import clientRoutes from "./routes/clientRoutes.js";
 import publicationRoutes from "./routes/publicationRoutes.js";
@@ -18,9 +17,8 @@ import clientDashboardRoutes from "./routes/clientDashboardRoutes.js";
 dotenv.config();
 
 const app = express();
-export const httpServer = createServer(app); // ⬅️ Exportamos el servidor HTTP
+export const httpServer = createServer(app);
 export const io = new SocketIOServer(httpServer, {
-  // ⬅️ Configuramos y exportamos Socket.IO
   cors: {
     origin: [ENV.clientUrl, /\.trycloudflare\.com$/],
     credentials: true,
@@ -38,13 +36,10 @@ app.use(
     credentials: true,
   })
 );
-
 app.use(express.json());
-
-// ✅ Servir archivos estáticos desde /uploads
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// 📢 Middleware para adjuntar 'io' a la solicitud (req.io)
+// Middleware para inyectar 'io' en req
 app.use((req, res, next) => {
   req.io = io;
   next();
@@ -57,7 +52,7 @@ app.use("/api", publicationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/dashboard/client", clientDashboardRoutes);
 
-// 🌐 Página raíz para comprobar el estado del servidor
+// Página raíz de prueba
 app.get("/", (req, res) => {
   res.type("html").send(`
         <!DOCTYPE html>
@@ -81,32 +76,30 @@ app.get("/", (req, res) => {
     `);
 });
 
-// ---------------------- 🟢 CONFIGURACIÓN SOCKET.IO ----------------------
+// ---------------------- 🟢 SOCKET.IO ----------------------
 io.on("connection", (socket) => {
   console.log(`[Socket.IO] Nuevo cliente conectado: ${socket.id}`);
 
   socket.on("join_admin_notifications", (token) => {
-    // 1. Verificar el token y obtener el payload
-    const user = verifySocketToken(token);
+    let user;
+    try {
+      user = verifySocketToken(token);
+    } catch (err) {
+      console.warn(`[Socket.IO] Token inválido: ${err.message}`);
+      socket.emit("join_failure", { message: "Token inválido" });
+      return;
+    }
 
     if (user && user.role === "ADMIN") {
-      // 2. Token válido y rol de ADMIN: unir a la sala
       socket.join("admin_notifications");
       console.log(
         `[Socket.IO] ADMIN ${user.id} se unió a la sala 'admin_notifications'`
       );
-      // Opcional: emitir un mensaje de éxito solo a este socket
       socket.emit("join_success", {
         message: "Conectado al canal de notificaciones.",
       });
     } else {
-      // 3. Token inválido o no es ADMIN: loguear y rechazar
-      console.warn(
-        `[Socket.IO] Rechazado: Intento de unirse a la sala de admin. Rol: ${
-          user?.role || "INVÁLIDO"
-        }`
-      );
-      // Opcional: avisar al cliente que la conexión fue rechazada
+      console.warn(`[Socket.IO] Rechazado: Rol ${user?.role || "INVÁLIDO"}`);
       socket.emit("join_failure", {
         message: "No autorizado para unirse a este canal.",
       });
@@ -114,7 +107,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    // Socket.IO automáticamente saca al socket de la sala.
     console.log(`[Socket.IO] Cliente desconectado: ${socket.id}`);
   });
 });
